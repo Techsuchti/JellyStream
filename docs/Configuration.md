@@ -7,7 +7,7 @@ The bridge is configured via `config/config.json`.
 ```json
 {
   "jellyfin": {
-    "server_url": "http://192.168.1.100:8096",
+    "server_url": "http://your-jellyfin-server:8096",
     "username": "bridge",
     "password": "your-secure-password"
   },
