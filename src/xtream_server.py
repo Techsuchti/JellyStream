@@ -169,7 +169,7 @@ class XtreamServer:
         )
 
     def get_server_info(self, username: str) -> Dict[str, Any]:
-        from datetime import datetime
+        from datetime import datetime, timezone
         import time
 
         return {
@@ -197,7 +197,7 @@ class XtreamServer:
                 'rtmp_port': '',
                 'timezone': 'UTC',
                 'timestamp_now': int(time.time()),
-                'time_now': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+                'time_now': datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
             }
         }
 
@@ -556,7 +556,7 @@ class XtreamServer:
         if not date_str:
             return ''
         try:
-            from datetime import datetime
+            from datetime import datetime, timezone
             dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
             return str(int(dt.timestamp()))
         except Exception:
