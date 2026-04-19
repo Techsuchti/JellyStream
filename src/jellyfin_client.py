@@ -52,7 +52,8 @@ class JellyfinClient:
             data = response.json()
             self.api_key = data.get('AccessToken')
             self.user_id = data.get('User', {}).get('Id')
-            logger.info(f'Jellyfin auth successful for user: {self.username}, user_id: {self.user_id}')
+            # Auth success logged by server after banner
+            # logger.info(f'Jellyfin auth successful for user: {self.username}, user_id: {self.user_id}')
         except Exception as e:
             logger.error(f'Jellyfin authentication failed: {e}')
             raise

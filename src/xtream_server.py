@@ -111,12 +111,11 @@ class XtreamServer:
             users = self.jellyfin.get_users()
             if users:
                 self.jellyfin_user_id = users[0]['Id']
-                logger.info(
-                    f"Using Jellyfin user: {users[0].get('Name')} "
-                    f"({self.jellyfin_user_id})"
-                )
                 # Build category maps (silent, logged after banner)
                 self._build_category_maps(log=False)
+                # Store user info for later logging (after banner)
+                self._startup_user_log = f"{CYAN}Jellyfin auth successful for user:{RESET} {users[0].get('Name')}, user_id: {self.jellyfin_user_id}"
+                self._startup_user_log2 = f"{CYAN}Using Jellyfin user:{RESET} {users[0].get('Name')} ({self.jellyfin_user_id})"
             else:
                 logger.error("No users found in Jellyfin")
         except Exception as e:
@@ -152,7 +151,8 @@ class XtreamServer:
             logger.error(f"Failed to build category maps: {str(e)}")
 
     def _log_category_mappings(self):
-        """Log the current category mappings."""
+        """Log the current category mappings with a Libraries header."""
+        logger.info(f"{BOLD}Libraries:{RESET}")
         for lib in self._movie_libraries:
             lib_id = lib['Id']
             count = sum(1 for v in self._movie_category_map.values() if v == lib_id)
@@ -723,7 +723,10 @@ def main():
     logger.info(f"{GREEN}Starting JellyStream on {host}:{port}{RESET}")
     logger.info(f"{GREEN}JellyStream is ready ✓{RESET}")
     
-    # Log category mappings
+    # Log user info and category mappings after banner
+    if hasattr(server, '_startup_user_log'):
+        logger.info(server._startup_user_log)
+        logger.info(server._startup_user_log2)
     server._log_category_mappings()
     
     app.run(host=host, port=port, debug=False)
