@@ -1,5 +1,7 @@
 # JellyStream
 
+[![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/techsuchti)
+
 A bridge server that exposes Jellyfin's movie and series library through the Xtream Codes API, allowing IPTV apps (like Dispatcharr, TiviMate, etc.) to access Jellyfin content.
 
 ## Features
@@ -88,12 +90,6 @@ Create a dedicated Jellyfin user (e.g., "bridge") with access to all libraries y
 - Libraries with `CollectionType: "movies"` → VOD categories
 - Libraries with `CollectionType: "tvshows"` → Series categories
 - Libraries with `CollectionType: null` → Probed for content type (movies or series)
-
-## Support the Project
-
-If you find this project useful, consider buying me a coffee:
-
-[![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/techsuchti)
 
 ## License
 
