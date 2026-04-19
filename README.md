@@ -1,4 +1,4 @@
-<img src="[assets/img.png](main/JellyStream.png)" alt="description" width="800"> 
+<img src="[assets/img.png](/JellyStream.png)" alt="description" width="800"> 
 
 # JellyStream
 
