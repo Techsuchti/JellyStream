@@ -57,9 +57,9 @@ Jellyfin library UUIDs become Xtream category IDs:
 
 | Jellyfin Library | UUID (Category ID) |
 |-----------------|-------------------|
-| Filme | `7a2175bccb1f1a94152cbd2b2bae8f6d` |
-| Horror | `fc3d996041ae3e1fc148af30b88380f3` |
-| Kinder | `d63fa61d249a0135dc028fcdd0c1271e` |
+| Filme | `a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6` |
+| Horror | `b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0` |
+| Kinder | `c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2` |
 
 These UUIDs are stable — they won't change unless you delete and recreate the library.
 

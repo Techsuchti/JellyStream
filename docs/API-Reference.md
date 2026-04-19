@@ -38,7 +38,7 @@ Returns movie categories (mapped from Jellyfin libraries).
 ```json
 [
   {
-    "category_id": "7a2175bccb1f1a94152cbd2b2bae8f6d",
+    "category_id": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6",
     "category_name": "Filme",
     "parent_id": 0
   }
@@ -73,7 +73,7 @@ Returns movies from a specific Jellyfin library.
     "rating": 7.5,
     "rating_5based": 3.8,
     "added": "1700000000",
-    "category_id": "7a2175bccb1f1a94152cbd2b2bae8f6d",
+    "category_id": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6",
     "container_extension": "mp4"
   }
 ]
