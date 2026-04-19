@@ -34,7 +34,7 @@ Edit `config/config.json`:
   },
   "xtream_server": {
     "host": "0.0.0.0",
-    "port": 7777,
+    "port": "7777",
     "server_url": "http://your-server:7777",
     "users": {
       "xtream_user": "xtream_password"
