@@ -15,51 +15,38 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from jellyfin_client import JellyfinClient
 
-# Detect if we're in a real terminal
-NO_COLOR = os.environ.get('NO_COLOR', '') or not sys.stderr.isatty()
-
-# ANSI color codes
-if NO_COLOR:
-    GREY = GREEN = YELLOW = RED = BOLD_RED = CYAN = MAGENTA = BOLD = RESET = ""
-else:
-    GREY = "\033[90m"
-    GREEN = "\033[32m"
-    YELLOW = "\033[33m"
-    RED = "\033[31m"
-    BOLD_RED = "\033[1;31m"
-    CYAN = "\033[36m"
-    MAGENTA = "\033[35m"
-    BOLD = "\033[1m"
-    RESET = "\033[0m"
+# ANSI color codes (always enabled)
+GREY = "\033[90m"
+GREEN = "\033[32m"
+YELLOW = "\033[33m"
+RED = "\033[31m"
+BOLD_RED = "\033[1;31m"
+CYAN = "\033[36m"
+MAGENTA = "\033[35m"
+BOLD = "\033[1m"
+DIM = "\033[2m"
+RESET = "\033[0m"
 
 
 class ColoredFormatter(logging.Formatter):
     """Colored log formatter for terminal output."""
 
     def format(self, record):
-        if NO_COLOR:
-            # Clean format for Docker logs / non-TTY
-            timestamp = self.formatTime(record, datefmt='%Y-%m-%d %H:%M:%S')
-            level = f"{record.levelname:<8}"
-            name = record.name
-            msg = record.getMessage()
-            return f"{timestamp} {level} {name}: {msg}"
-        else:
-            # Colorful format for real terminals
-            color = {
-                logging.DEBUG: GREY,
-                logging.INFO: GREEN,
-                logging.WARNING: YELLOW,
-                logging.ERROR: RED,
-                logging.CRITICAL: BOLD_RED,
-            }.get(record.levelno, RESET)
-            timestamp = f"{CYAN}{self.formatTime(record, datefmt='%Y-%m-%d %H:%M:%S')}{RESET}"
-            level = f"{color}{record.levelname:<8}{RESET}"
-            name = f"{MAGENTA}{record.name}{RESET}"
-            msg = record.getMessage()
-            if record.levelno >= logging.WARNING:
-                msg = f"{color}{msg}{RESET}"
-            return f"{timestamp} {level} {name}: {msg}"
+        timestamp = self.formatTime(record, datefmt='%Y-%m-%d %H:%M:%S')
+        level_colors = {
+            logging.DEBUG: GREY,
+            logging.INFO: GREEN,
+            logging.WARNING: YELLOW,
+            logging.ERROR: RED,
+            logging.CRITICAL: BOLD_RED,
+        }
+        color = level_colors.get(record.levelno, RESET)
+        level = f"{color}{record.levelname:<8}{RESET}"
+        name = f"{MAGENTA}{record.name}{RESET}"
+        msg = record.getMessage()
+        if record.levelno >= logging.WARNING:
+            msg = f"{color}{msg}{RESET}"
+        return f"{CYAN}{timestamp}{RESET} {level} {name}: {msg}"
 
 
 handler = logging.StreamHandler()
@@ -709,16 +696,17 @@ def stream_episode(username, password, stream_id, container):
 
 
 def main():
+    # Print startup banner directly (before logger is configured)
+    sys.stderr.write(f"{CYAN}╔══════════════════════════════════════════════╗{RESET}\n")
+    sys.stderr.write(f"{CYAN}║{RESET}  {BOLD}JellyStream by Techsuchti{RESET}                   {CYAN}║{RESET}\n")
+    sys.stderr.write(f"{CYAN}║{RESET}  https://github.com/Techsuchti/JellyStream   {CYAN}║{RESET}\n")
+    sys.stderr.write(f"{CYAN}╚══════════════════════════════════════════════╝{RESET}\n")
+    sys.stderr.write("\n")
+    sys.stderr.flush()
+
     host = server.config['xtream_server']['host']
     port = server.config['xtream_server']['port']
     
-    # Startup banner
-    print()
-    print(f"{CYAN}╔═══════════════════════════════════════════════╗{RESET}")
-    print(f"{CYAN}║{RESET}  {BOLD}JellyStream by Techsuchti{RESET}                  {CYAN}║{RESET}")
-    print(f"{CYAN}║{RESET}  https://github.com/Techsuchti/JellyStream  {CYAN}║{RESET}")
-    print(f"{CYAN}╚═══════════════════════════════════════════════╝{RESET}")
-    print()
     logger.info(f"{GREEN}Starting JellyStream on {host}:{port}{RESET}")
     logger.info(f"{GREEN}JellyStream is ready ✓{RESET}")
     
