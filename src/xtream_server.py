@@ -17,9 +17,13 @@ from jellyfin_client import JellyfinClient
 
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
 )
 logger = logging.getLogger(__name__)
+
+# Suppress noisy werkzeug logs
+logging.getLogger('werkzeug').setLevel(logging.WARNING)
 
 app = Flask(__name__)
 
@@ -254,13 +258,13 @@ class XtreamServer:
                     ),
                     'youtube_trailer': '',
                     'director': ', '.join(
-                        movie.get('People', [])
+                        p['Name'] for p in movie.get('People', []) if p.get('Type') == 'Director'
                     ) if movie.get('People') else '',
                     'actors': ', '.join(
-                        movie.get('People', [])
+                        p['Name'] for p in movie.get('People', []) if p.get('Type') == 'Actor'
                     ) if movie.get('People') else '',
                     'cast': ', '.join(
-                        movie.get('People', [])
+                        p['Name'] for p in movie.get('People', [])
                     ) if movie.get('People') else '',
                     'description': movie.get('Overview', ''),
                     'plot': movie.get('Overview', ''),
@@ -570,39 +574,55 @@ def player_api():
     action = request.args.get('action')
 
     if not username or not password:
+        logger.warning("API request missing credentials")
         return jsonify({'error': 'Missing credentials'}), 401
 
     if not server.authenticate(username, password):
+        logger.warning(f"Authentication failed for user: {username}")
         return jsonify({'error': 'Invalid credentials'}), 401
+
+    logger.info(f"[{username}] API request: action={action}")
 
     if not action:
         return jsonify(server.get_server_info(username))
 
     if action == 'get_vod_categories':
-        return jsonify(server.get_vod_categories())
+        result = server.get_vod_categories()
+        logger.info(f"[{username}] Returning {len(result)} VOD categories")
+        return jsonify(result)
 
     if action == 'get_vod_streams':
         category_id = request.args.get('category_id')
-        return jsonify(server.get_vod_streams(category_id))
+        result = server.get_vod_streams(category_id)
+        logger.info(f"[{username}] Returning {len(result)} VOD streams (category={category_id or 'all'})")
+        return jsonify(result)
 
     if action == 'get_vod_info':
         vod_id = request.args.get('vod_id')
         if not vod_id:
             return jsonify({'error': 'Missing vod_id'}), 400
-        return jsonify(server.get_vod_info(vod_id))
+        result = server.get_vod_info(vod_id)
+        logger.info(f"[{username}] VOD info for {vod_id[:8]}...")
+        return jsonify(result)
 
     if action == 'get_series_categories':
-        return jsonify(server.get_series_categories())
+        result = server.get_series_categories()
+        logger.info(f"[{username}] Returning {len(result)} series categories")
+        return jsonify(result)
 
     if action == 'get_series':
         category_id = request.args.get('category_id')
-        return jsonify(server.get_series(category_id))
+        result = server.get_series(category_id)
+        logger.info(f"[{username}] Returning {len(result)} series (category={category_id or 'all'})")
+        return jsonify(result)
 
     if action == 'get_series_info':
         series_id = request.args.get('series_id')
         if not series_id:
             return jsonify({'error': 'Missing series_id'}), 400
-        return jsonify(server.get_series_info(series_id))
+        result = server.get_series_info(series_id)
+        logger.info(f"[{username}] Series info for {series_id[:8]}...")
+        return jsonify(result)
 
     if action == 'get_live_categories':
         return jsonify([])
@@ -610,13 +630,16 @@ def player_api():
     if action == 'get_live_streams':
         return jsonify([])
 
+    logger.warning(f"[{username}] Unknown action: {action}")
     return jsonify({'error': f'Unknown action: {action}'}), 400
 
 
 @app.route('/movie/<username>/<password>/<stream_id>.<container>')
 def stream_movie(username, password, stream_id, container):
     if not server.authenticate(username, password):
+        logger.warning(f"Stream auth failed for user: {username}")
         return jsonify({'error': 'Invalid credentials'}), 401
+    logger.info(f"[{username}] Movie stream: {stream_id[:8]}... ({container})")
     if container == 'm3u8':
         stream_url = server.jellyfin.get_hls_stream_url(stream_id)
     else:
@@ -627,7 +650,9 @@ def stream_movie(username, password, stream_id, container):
 @app.route('/series/<username>/<password>/<stream_id>.<container>')
 def stream_episode(username, password, stream_id, container):
     if not server.authenticate(username, password):
+        logger.warning(f"Stream auth failed for user: {username}")
         return jsonify({'error': 'Invalid credentials'}), 401
+    logger.info(f"[{username}] Episode stream: {stream_id[:8]}... ({container})")
     if container == 'm3u8':
         stream_url = server.jellyfin.get_hls_stream_url(stream_id)
     else:
