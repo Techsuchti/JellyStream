@@ -15,39 +15,51 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from jellyfin_client import JellyfinClient
 
+# Detect if we're in a real terminal
+NO_COLOR = os.environ.get('NO_COLOR', '') or not sys.stderr.isatty()
 
-# Custom colored formatter
+# ANSI color codes
+if NO_COLOR:
+    GREY = GREEN = YELLOW = RED = BOLD_RED = CYAN = MAGENTA = BOLD = RESET = ""
+else:
+    GREY = "\033[90m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    RED = "\033[31m"
+    BOLD_RED = "\033[1;31m"
+    CYAN = "\033[36m"
+    MAGENTA = "\033[35m"
+    BOLD = "\033[1m"
+    RESET = "\033[0m"
+
+
 class ColoredFormatter(logging.Formatter):
     """Colored log formatter for terminal output."""
-    grey = "\033[90m"
-    blue = "\033[34m"
-    green = "\033[32m"
-    yellow = "\033[33m"
-    red = "\033[31m"
-    bold_red = "\033[1;31m"
-    cyan = "\033[36m"
-    magenta = "\033[35m"
-    bold = "\033[1m"
-    reset = "\033[0m"
-
-    LEVEL_COLORS = {
-        logging.DEBUG: grey,
-        logging.INFO: green,
-        logging.WARNING: yellow,
-        logging.ERROR: red,
-        logging.CRITICAL: bold_red,
-    }
 
     def format(self, record):
-        color = self.LEVEL_COLORS.get(record.levelno, self.reset)
-        # Build formatted message
-        timestamp = self.formatTime(record, datefmt='%Y-%m-%d %H:%M:%S')
-        level = f"{color}{record.levelname:<8}{self.reset}"
-        name = f"{self.magenta}{record.name}{self.reset}"
-        msg = record.getMessage()
-        if record.levelno >= logging.WARNING:
-            msg = f"{color}{msg}{self.reset}"
-        return f"{self.cyan}{timestamp}{self.reset} {level} {name}: {msg}"
+        if NO_COLOR:
+            # Clean format for Docker logs / non-TTY
+            timestamp = self.formatTime(record, datefmt='%Y-%m-%d %H:%M:%S')
+            level = f"{record.levelname:<8}"
+            name = record.name
+            msg = record.getMessage()
+            return f"{timestamp} {level} {name}: {msg}"
+        else:
+            # Colorful format for real terminals
+            color = {
+                logging.DEBUG: GREY,
+                logging.INFO: GREEN,
+                logging.WARNING: YELLOW,
+                logging.ERROR: RED,
+                logging.CRITICAL: BOLD_RED,
+            }.get(record.levelno, RESET)
+            timestamp = f"{CYAN}{self.formatTime(record, datefmt='%Y-%m-%d %H:%M:%S')}{RESET}"
+            level = f"{color}{record.levelname:<8}{RESET}"
+            name = f"{MAGENTA}{record.name}{RESET}"
+            msg = record.getMessage()
+            if record.levelno >= logging.WARNING:
+                msg = f"{color}{msg}{RESET}"
+            return f"{timestamp} {level} {name}: {msg}"
 
 
 handler = logging.StreamHandler()
@@ -113,7 +125,7 @@ class XtreamServer:
             if users:
                 self.jellyfin_user_id = users[0]['Id']
                 logger.info(
-                    f"\033[36mUsing Jellyfin user:\033[0m {users[0].get('Name')} "
+                    f"Using Jellyfin user: {users[0].get('Name')} "
                     f"({self.jellyfin_user_id})"
                 )
                 # Build category maps
@@ -136,7 +148,7 @@ class XtreamServer:
                 movies = self.jellyfin.get_movies(self.jellyfin_user_id, parent_id=lib_id)
                 for movie in movies:
                     self._movie_category_map[movie['Id']] = lib_id
-                logger.info(f"\033[32m  ✓\033[0m {len(movies)} movies → \033[1m{lib.get('Name')}\033[0m ({lib_id})")
+                logger.info(f"{GREEN}  ✓{RESET} {len(movies)} movies → {BOLD}{lib.get('Name')}{RESET} ({lib_id})")
 
             # Get series libraries
             self._series_libraries = self.jellyfin.get_series_libraries(self.jellyfin_user_id)
@@ -145,7 +157,7 @@ class XtreamServer:
                 series = self.jellyfin.get_series(self.jellyfin_user_id, parent_id=lib_id)
                 for show in series:
                     self._series_category_map[show['Id']] = lib_id
-                logger.info(f"\033[32m  ✓\033[0m {len(series)} series → \033[1m{lib.get('Name')}\033[0m ({lib_id})")
+                logger.info(f"{GREEN}  ✓{RESET} {len(series)} series → {BOLD}{lib.get('Name')}{RESET} ({lib_id})")
 
         except Exception as e:
             logger.error(f"Failed to build category maps: {str(e)}")
@@ -702,13 +714,13 @@ def main():
     
     # Startup banner
     print()
-    print("\033[1;36m╔═══════════════════════════════════════════════╗\033[0m")
-    print("\033[1;36m║\033[0m  \033[1;37mJellyStream by Techsuchti\033[0m                  \033[1;36m║\033[0m")
-    print("\033[1;36m║\033[0m  \033[2;37mhttps://github.com/Techsuchti/JellyStream\033[0m  \033[1;36m║\033[0m")
-    print("\033[1;36m╚═══════════════════════════════════════════════╝\033[0m")
+    print(f"{CYAN}╔═══════════════════════════════════════════════╗{RESET}")
+    print(f"{CYAN}║{RESET}  {BOLD}JellyStream by Techsuchti{RESET}                  {CYAN}║{RESET}")
+    print(f"{CYAN}║{RESET}  https://github.com/Techsuchti/JellyStream  {CYAN}║{RESET}")
+    print(f"{CYAN}╚═══════════════════════════════════════════════╝{RESET}")
     print()
-    logger.info(f"\033[32mStarting JellyStream on {host}:{port}\033[0m")
-    logger.info("\033[32mJellyStream is ready ✓\033[0m")
+    logger.info(f"{GREEN}Starting JellyStream on {host}:{port}{RESET}")
+    logger.info(f"{GREEN}JellyStream is ready ✓{RESET}")
     
     app.run(host=host, port=port, debug=False)
 
