@@ -30,7 +30,7 @@ docker run -d \
   --name jellstream \
   --network host \
   -v /path/to/config:/app/config \
-  ghcr.io/techsuchti/jellstream:latest
+  ghcr.io/techsuchti/jellstream:v1.1.2
 ```
 
 See [[Installation]] for detailed instructions.
