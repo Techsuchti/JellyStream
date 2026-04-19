@@ -1,6 +1,3 @@
-<img src="[assets/img.png](/JellyStream.png)" alt="description" width="800"> 
-
-
 ![Alternativtext](/JellyStream.png "JellyStream")
 
 # JellyStream
