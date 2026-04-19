@@ -700,6 +700,13 @@ def main():
     host = server.config['xtream_server']['host']
     port = server.config['xtream_server']['port']
     
+    # Startup banner
+    print()
+    print("\033[1;36m╔═══════════════════════════════════════════════╗\033[0m")
+    print("\033[1;36m║\033[0m  \033[1;37mJellyStream by Techsuchti\033[0m                  \033[1;36m║\033[0m")
+    print("\033[1;36m║\033[0m  \033[2;37mhttps://github.com/Techsuchti/JellyStream\033[0m  \033[1;36m║\033[0m")
+    print("\033[1;36m╚═══════════════════════════════════════════════╝\033[0m")
+    print()
     logger.info(f"\033[32mStarting JellyStream on {host}:{port}\033[0m")
     logger.info("\033[32mJellyStream is ready ✓\033[0m")
     
