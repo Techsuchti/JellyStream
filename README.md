@@ -1,5 +1,8 @@
 <img src="[assets/img.png](/JellyStream.png)" alt="description" width="800"> 
 
+
+![Alternativtext](/JellyStream.png "JellyStream")
+
 # JellyStream
 
 [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/techsuchti)
