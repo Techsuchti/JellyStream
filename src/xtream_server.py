@@ -115,14 +115,14 @@ class XtreamServer:
                     f"Using Jellyfin user: {users[0].get('Name')} "
                     f"({self.jellyfin_user_id})"
                 )
-                # Build category maps
-                self._build_category_maps()
+                # Build category maps (silent, logged after banner)
+                self._build_category_maps(log=False)
             else:
                 logger.error("No users found in Jellyfin")
         except Exception as e:
             logger.error(f"Failed to get Jellyfin users: {str(e)}")
 
-    def _build_category_maps(self):
+    def _build_category_maps(self, log: bool = False):
         """Build mapping of item IDs to their library (category) IDs."""
         try:
             self._movie_category_map.clear()
@@ -135,7 +135,8 @@ class XtreamServer:
                 movies = self.jellyfin.get_movies(self.jellyfin_user_id, parent_id=lib_id)
                 for movie in movies:
                     self._movie_category_map[movie['Id']] = lib_id
-                logger.info(f"{GREEN}  ✓{RESET} {len(movies)} movies → {BOLD}{lib.get('Name')}{RESET} ({lib_id})")
+                if log:
+                    logger.info(f"{GREEN}  ✓{RESET} {len(movies)} movies → {BOLD}{lib.get('Name')}{RESET} ({lib_id})")
 
             # Get series libraries
             self._series_libraries = self.jellyfin.get_series_libraries(self.jellyfin_user_id)
@@ -144,10 +145,22 @@ class XtreamServer:
                 series = self.jellyfin.get_series(self.jellyfin_user_id, parent_id=lib_id)
                 for show in series:
                     self._series_category_map[show['Id']] = lib_id
-                logger.info(f"{GREEN}  ✓{RESET} {len(series)} series → {BOLD}{lib.get('Name')}{RESET} ({lib_id})")
+                if log:
+                    logger.info(f"{GREEN}  ✓{RESET} {len(series)} series → {BOLD}{lib.get('Name')}{RESET} ({lib_id})")
 
         except Exception as e:
             logger.error(f"Failed to build category maps: {str(e)}")
+
+    def _log_category_mappings(self):
+        """Log the current category mappings."""
+        for lib in self._movie_libraries:
+            lib_id = lib['Id']
+            count = sum(1 for v in self._movie_category_map.values() if v == lib_id)
+            logger.info(f"{GREEN}  ✓{RESET} {count} movies → {BOLD}{lib.get('Name')}{RESET} ({lib_id})")
+        for lib in self._series_libraries:
+            lib_id = lib['Id']
+            count = sum(1 for v in self._series_category_map.values() if v == lib_id)
+            logger.info(f"{GREEN}  ✓{RESET} {count} series → {BOLD}{lib.get('Name')}{RESET} ({lib_id})")
 
     def authenticate(self, username: str, password: str) -> bool:
         return (
@@ -709,6 +722,9 @@ def main():
     
     logger.info(f"{GREEN}Starting JellyStream on {host}:{port}{RESET}")
     logger.info(f"{GREEN}JellyStream is ready ✓{RESET}")
+    
+    # Log category mappings
+    server._log_category_mappings()
     
     app.run(host=host, port=port, debug=False)
 
