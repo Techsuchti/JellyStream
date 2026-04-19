@@ -646,7 +646,7 @@ def player_api():
         return jsonify(result)
 
     if action == 'get_vod_info':
-        vod_id = request.args.get('vod_id')
+        vod_id = request.args.get('vod_id') or request.args.get('stream_id')
         if not vod_id:
             return jsonify({'error': 'Missing vod_id'}), 400
         result = server.get_vod_info(vod_id)
@@ -665,7 +665,7 @@ def player_api():
         return jsonify(result)
 
     if action == 'get_series_info':
-        series_id = request.args.get('series_id')
+        series_id = request.args.get('series_id') or request.args.get('stream_id')
         if not series_id:
             return jsonify({'error': 'Missing series_id'}), 400
         result = server.get_series_info(series_id)
