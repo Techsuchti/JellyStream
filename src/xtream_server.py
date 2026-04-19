@@ -15,10 +15,46 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from jellyfin_client import JellyfinClient
 
+
+# Custom colored formatter
+class ColoredFormatter(logging.Formatter):
+    """Colored log formatter for terminal output."""
+    grey = "\033[90m"
+    blue = "\033[34m"
+    green = "\033[32m"
+    yellow = "\033[33m"
+    red = "\033[31m"
+    bold_red = "\033[1;31m"
+    cyan = "\033[36m"
+    magenta = "\033[35m"
+    bold = "\033[1m"
+    reset = "\033[0m"
+
+    LEVEL_COLORS = {
+        logging.DEBUG: grey,
+        logging.INFO: green,
+        logging.WARNING: yellow,
+        logging.ERROR: red,
+        logging.CRITICAL: bold_red,
+    }
+
+    def format(self, record):
+        color = self.LEVEL_COLORS.get(record.levelno, self.reset)
+        # Build formatted message
+        timestamp = self.formatTime(record, datefmt='%Y-%m-%d %H:%M:%S')
+        level = f"{color}{record.levelname:<8}{self.reset}"
+        name = f"{self.magenta}{record.name}{self.reset}"
+        msg = record.getMessage()
+        if record.levelno >= logging.WARNING:
+            msg = f"{color}{msg}{self.reset}"
+        return f"{self.cyan}{timestamp}{self.reset} {level} {name}: {msg}"
+
+
+handler = logging.StreamHandler()
+handler.setFormatter(ColoredFormatter())
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
+    handlers=[handler]
 )
 logger = logging.getLogger(__name__)
 
@@ -77,7 +113,7 @@ class XtreamServer:
             if users:
                 self.jellyfin_user_id = users[0]['Id']
                 logger.info(
-                    f"Using Jellyfin user: {users[0].get('Name')} "
+                    f"\033[36mUsing Jellyfin user:\033[0m {users[0].get('Name')} "
                     f"({self.jellyfin_user_id})"
                 )
                 # Build category maps
@@ -100,7 +136,7 @@ class XtreamServer:
                 movies = self.jellyfin.get_movies(self.jellyfin_user_id, parent_id=lib_id)
                 for movie in movies:
                     self._movie_category_map[movie['Id']] = lib_id
-                logger.info(f"Mapped {len(movies)} movies to category {lib.get('Name')} ({lib_id})")
+                logger.info(f"\033[32m  ✓\033[0m {len(movies)} movies → \033[1m{lib.get('Name')}\033[0m ({lib_id})")
 
             # Get series libraries
             self._series_libraries = self.jellyfin.get_series_libraries(self.jellyfin_user_id)
@@ -109,7 +145,7 @@ class XtreamServer:
                 series = self.jellyfin.get_series(self.jellyfin_user_id, parent_id=lib_id)
                 for show in series:
                     self._series_category_map[show['Id']] = lib_id
-                logger.info(f"Mapped {len(series)} series to category {lib.get('Name')} ({lib_id})")
+                logger.info(f"\033[32m  ✓\033[0m {len(series)} series → \033[1m{lib.get('Name')}\033[0m ({lib_id})")
 
         except Exception as e:
             logger.error(f"Failed to build category maps: {str(e)}")
@@ -664,8 +700,8 @@ def main():
     host = server.config['xtream_server']['host']
     port = server.config['xtream_server']['port']
     
-    logger.info(f"Starting Xtream Codes Server on {host}:{port}")
-    logger.info("JellyStream is ready")
+    logger.info(f"\033[32mStarting JellyStream on {host}:{port}\033[0m")
+    logger.info("\033[32mJellyStream is ready ✓\033[0m")
     
     app.run(host=host, port=port, debug=False)
 
